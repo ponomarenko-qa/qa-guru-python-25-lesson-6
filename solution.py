@@ -119,29 +119,45 @@ def sender_email(recipient_list: list[str], subject: str, message: str, *, sende
         return emails_list
 
     correct_recipients_emails = get_correct_email(recipient_list)
+
     if not get_correct_email([sender]) or not correct_recipients_emails:
         return emails_list
 
     is_empty_subject, is_empty_body = check_empty_fields(subject, message)
+
     if is_empty_subject or is_empty_body:
         return emails_list
 
-    cleaned_recipients_list = [recipient for recipient in correct_recipients_emails if recipient != sender]
+    cleaned_recipients_list = [
+        recipient for recipient in correct_recipients_emails
+        if recipient != sender
+    ]
 
     cleaned_subject_text = clean_body_text(subject)
     cleaned_message_text = clean_body_text(message)
-    normalized_recipients = []
-    for recipient in cleaned_recipients_list:
-        normalized_recipients.append(normalize_addresses(recipient))
+
+    normalized_recipients = [
+        normalize_addresses(recipient)
+        for recipient in cleaned_recipients_list
+    ]
+
     normalized_sender = normalize_addresses(sender)
 
     for recipient in normalized_recipients:
-        email = create_email(normalized_sender, recipient, cleaned_subject_text, cleaned_message_text)
+        email = create_email(
+            normalized_sender,
+            recipient,
+            cleaned_subject_text,
+            cleaned_message_text
+        )
+
         add_send_date(email)
         login, domain = extract_login_domain(normalized_sender)
         email["masked_sender"] = mask_sender_email(login, domain)
+
         add_short_body(email)
         email["sent_text"] = build_sent_text(email)
+
         emails_list.append(email)
 
     return emails_list
